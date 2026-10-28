@@ -1,0 +1,1095 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BRINZO — Challenge Your Brain!</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#f5f3ff',
+                            100: '#ede9fe',
+                            400: '#a78bfa',
+                            500: '#8b5cf6',
+                            600: '#7c3aed',
+                            700: '#6d28d9',
+                            800: '#5b21b6',
+                            900: '#4c1d95',
+                            glow: '#9d4edd'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif']
+                    },
+                    animation: {
+                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'bounce-short': 'bounce 0.8s infinite'
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- FontAwesome Icons CDN -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        /* Glassmorphism Styles */
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+        .dark .glass-panel {
+            background: rgba(17, 24, 39, 0.75);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(139, 92, 246, 0.2);
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.5);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(200, 200, 250, 0.3);
+            transition: all 0.3s ease;
+        }
+        .dark .glass-card {
+            background: rgba(30, 27, 75, 0.4);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(139, 92, 246, 0.15);
+        }
+        .dark .glass-card:hover {
+            border-color: rgba(167, 139, 250, 0.5);
+            box-shadow: 0 8px 25px -5px rgba(139, 92, 246, 0.3);
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(0,0,0,0.05);
+        }
+        .dark ::-webkit-scrollbar-track {
+            background: rgba(15, 23, 42, 0.6);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #8b5cf6;
+            border-radius: 4px;
+        }
+        
+        /* Shimmer effect for buttons */
+        .glow-btn {
+            position: relative;
+            overflow: hidden;
+        }
+        .glow-btn::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(60deg, transparent, rgba(255,255,255,0.2), transparent);
+            transform: rotate(30deg);
+            transition: 0.8s;
+        }
+        .glow-btn:hover::after {
+            left: 100%;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-900 dark:bg-gray-950 dark:text-gray-100 min-h-screen flex flex-col selection:bg-brand-500 selection:text-white">
+
+    <!-- TOP BAR (Live Time, Charge Status, Utilities) -->
+    <header class="sticky top-0 z-40 w-full border-b border-gray-200 dark:border-brand-900/50 bg-white/80 dark:bg-gray-950/80 backdrop-blur-md px-4 py-2.5">
+        <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-3 text-xs sm:text-sm">
+            
+            <!-- Left Info: Time & Battery -->
+            <div class="flex items-center space-x-4 bg-gray-100 dark:bg-gray-900 px-3 py-1.5 rounded-full border border-gray-200 dark:border-gray-800">
+                <div class="flex items-center space-x-1.5 text-brand-600 dark:text-brand-400">
+                    <i class="fa-regular fa-clock text-xs"></i>
+                    <span id="top-time" class="font-bold tracking-wider">--:--:-- PM</span>
+                </div>
+                <div class="h-3 w-px bg-gray-300 dark:bg-gray-700"></div>
+                <div class="flex items-center space-x-1.5 text-emerald-600 dark:text-emerald-400">
+                    <i id="battery-icon" class="fa-solid fa-battery-half text-xs"></i>
+                    <span id="top-charge" class="font-bold">--%</span>
+                </div>
+            </div>
+
+            <!-- Logo (Center Mobile/Left Desktop) -->
+            <div class="flex items-center space-x-2 cursor-pointer" onclick="showScreen('home-screen')">
+                <div class="w-8 h-8 rounded-lg bg-gradient-to-tr from-brand-700 to-brand-500 flex items-center justify-center text-white shadow-lg shadow-brand-500/30">
+                    <i class="fa-solid fa-bolt text-lg"></i>
+                </div>
+                <span class="font-black text-xl tracking-wider bg-gradient-to-r from-brand-600 via-purple-500 to-indigo-500 bg-clip-text text-transparent">BRINZO</span>
+            </div>
+
+            <!-- Right Actions: Creator, Import, High Scores, Dark Mode -->
+            <div class="flex items-center space-x-2">
+                <button onclick="openModal('import-modal')" class="glow-btn px-3 py-1.5 rounded-lg bg-brand-100 dark:bg-brand-950/80 text-brand-700 dark:text-brand-300 hover:bg-brand-200 dark:hover:bg-brand-900 border border-brand-300 dark:border-brand-800 transition font-medium text-xs sm:text-sm flex items-center gap-1.5">
+                    <i class="fa-solid fa-file-import"></i>
+                    <span class="hidden sm:inline">Import Quiz</span>
+                </button>
+                <button onclick="openModal('create-modal')" class="glow-btn px-3 py-1.5 rounded-lg bg-gradient-to-r from-brand-600 to-indigo-600 hover:from-brand-500 hover:to-indigo-500 text-white font-medium text-xs sm:text-sm shadow-md shadow-brand-600/20 transition flex items-center gap-1.5">
+                    <i class="fa-solid fa-plus-circle"></i>
+                    <span>Create Quiz</span>
+                </button>
+                <button onclick="openModal('scores-modal')" class="p-2 rounded-lg bg-gray-100 dark:bg-gray-900 hover:bg-gray-200 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-300 transition" title="High Scores">
+                    <i class="fa-solid fa-trophy text-amber-500"></i>
+                </button>
+                <button id="theme-toggle" onclick="toggleTheme()" class="p-2 rounded-lg bg-gray-100 dark:bg-gray-900 hover:bg-gray-200 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-300 transition" title="Toggle Theme">
+                    <i id="theme-icon" class="fa-solid fa-moon"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- MAIN CONTAINER -->
+    <main class="flex-grow max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8 flex flex-col justify-center">
+
+        <!-- HOMEPAGE SCREEN -->
+        <section id="home-screen" class="space-y-8 animate-fade-in">
+            <!-- Hero Header -->
+            <div class="text-center space-y-4 max-w-3xl mx-auto pt-4">
+                <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-brand-100 text-brand-800 dark:bg-brand-950/80 dark:text-brand-300 border border-brand-300 dark:border-brand-800">
+                    <i class="fa-solid fa-sparkles text-amber-400"></i> Ultimate Brain Training Experience
+                </span>
+                <h1 class="text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight leading-tight">
+                    Welcome to <span class="bg-gradient-to-r from-brand-600 via-brand-400 to-indigo-500 bg-clip-text text-transparent">BRINZO</span>
+                    <br><span class="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-600 dark:text-gray-400">Challenge Your Brain!</span>
+                </h1>
+                <p class="text-gray-600 dark:text-gray-400 text-sm sm:text-base max-w-xl mx-auto">
+                    Select a category, test your knowledge, earn badges, and dominate the leaderboard with hundreds of curated trivia questions!
+                </p>
+
+                <!-- Quick Action Hub -->
+                <div class="flex flex-wrap items-center justify-center gap-3 pt-2">
+                    <button onclick="startRandomQuiz()" class="glow-btn px-5 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-500 text-white font-semibold text-sm shadow-lg shadow-brand-600/30 transition flex items-center gap-2">
+                        <i class="fa-solid fa-dice"></i>
+                        <span>Random Quiz</span>
+                    </button>
+                    <button onclick="startDailyChallenge()" class="glow-btn px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-white font-semibold text-sm shadow-lg shadow-amber-500/30 transition flex items-center gap-2">
+                        <i class="fa-solid fa-calendar-star"></i>
+                        <span>Daily Challenge</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Controls Toolbar: Search & Difficulty Filter -->
+            <div class="glass-panel p-4 rounded-2xl flex flex-col md:flex-row gap-4 items-center justify-between">
+                <!-- Search Input -->
+                <div class="relative w-full md:w-80">
+                    <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                    <input type="text" id="category-search" placeholder="Search categories..." oninput="filterCategories()"
+                        class="w-full pl-10 pr-4 py-2 rounded-xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 focus:outline-none focus:ring-2 focus:ring-brand-500 text-sm">
+                </div>
+
+                <!-- Difficulty Selector -->
+                <div class="flex items-center space-x-2 w-full md:w-auto justify-center">
+                    <span class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mr-1">Difficulty:</span>
+                    <button onclick="setDifficulty('easy')" id="diff-easy" class="diff-btn px-3 py-1.5 rounded-lg text-xs font-bold border transition bg-emerald-500/10 text-emerald-600 border-emerald-500">Easy</button>
+                    <button onclick="setDifficulty('medium')" id="diff-medium" class="diff-btn px-3 py-1.5 rounded-lg text-xs font-bold border transition text-gray-500 border-gray-300 dark:border-gray-700">Medium</button>
+                    <button onclick="setDifficulty('hard')" id="diff-hard" class="diff-btn px-3 py-1.5 rounded-lg text-xs font-bold border transition text-gray-500 border-gray-300 dark:border-gray-700">Hard</button>
+                </div>
+            </div>
+
+            <!-- Quiz Category Grid -->
+            <div>
+                <h2 class="text-xl font-bold mb-4 flex items-center gap-2">
+                    <i class="fa-solid fa-layer-group text-brand-500"></i>
+                    <span>Explore Categories</span>
+                </h2>
+                <div id="category-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <!-- Dynamic rendering via JavaScript -->
+                </div>
+            </div>
+        </section>
+
+        <!-- QUIZ INTERFACE SCREEN -->
+        <section id="quiz-screen" class="hidden max-w-3xl mx-auto w-full space-y-6">
+            <!-- Header bar with Category Name, Timer, Quit Button -->
+            <div class="glass-panel p-4 rounded-2xl flex items-center justify-between gap-4">
+                <div class="flex items-center gap-3">
+                    <button onclick="quitQuiz()" class="p-2 rounded-lg bg-gray-100 dark:bg-gray-800 hover:bg-red-500 hover:text-white transition text-gray-500" title="Quit Quiz">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                    <div>
+                        <h3 id="quiz-cat-title" class="font-bold text-base sm:text-lg leading-tight">Science</h3>
+                        <p id="quiz-diff-tag" class="text-xs font-semibold text-brand-500 uppercase">Medium Level</p>
+                    </div>
+                </div>
+
+                <!-- Timer Ring/Box -->
+                <div class="flex items-center gap-2 bg-brand-50 dark:bg-brand-950/60 px-3 py-1.5 rounded-xl border border-brand-200 dark:border-brand-800">
+                    <i class="fa-solid fa-hourglass-half text-brand-600 dark:text-brand-400 animate-spin"></i>
+                    <span id="quiz-timer" class="font-mono font-bold text-lg text-brand-700 dark:text-brand-300">15s</span>
+                </div>
+            </div>
+
+            <!-- Progress Indicator Bar -->
+            <div class="space-y-1.5">
+                <div class="flex justify-between text-xs font-semibold text-gray-500 dark:text-gray-400">
+                    <span id="quiz-progress-text">Question 1 of 10</span>
+                    <span id="quiz-score-live">Score: 0</span>
+                </div>
+                <div class="w-full h-2.5 bg-gray-200 dark:bg-gray-800 rounded-full overflow-hidden">
+                    <div id="quiz-progress-bar" class="h-full bg-gradient-to-r from-brand-600 to-indigo-500 transition-all duration-300" style="width: 10%;"></div>
+                </div>
+            </div>
+
+            <!-- Main Question Card -->
+            <div class="glass-panel p-6 sm:p-8 rounded-3xl space-y-6 shadow-xl relative overflow-hidden">
+                <!-- Question Text -->
+                <h2 id="quiz-question" class="text-lg sm:text-2xl font-bold leading-relaxed text-gray-900 dark:text-gray-100">
+                    Loading question...
+                </h2>
+
+                <!-- Answer Options -->
+                <div id="quiz-options" class="grid grid-cols-1 gap-3">
+                    <!-- Options inserted dynamically -->
+                </div>
+
+                <!-- Short Explanation Container (Hidden initially) -->
+                <div id="quiz-explanation-box" class="hidden p-4 rounded-xl bg-brand-50 dark:bg-brand-950/80 border border-brand-200 dark:border-brand-800 space-y-1 animate-fade-in">
+                    <div class="flex items-center gap-2 text-brand-700 dark:text-brand-300 font-bold text-sm">
+                        <i class="fa-solid fa-lightbulb"></i>
+                        <span>Explanation</span>
+                    </div>
+                    <p id="quiz-explanation-text" class="text-xs sm:text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
+                        Explanation details will appear here.
+                    </p>
+                </div>
+
+                <!-- Footer Next Button -->
+                <div class="flex justify-end pt-2">
+                    <button id="next-btn" onclick="nextQuestion()" disabled class="glow-btn px-6 py-2.5 rounded-xl bg-brand-600 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-brand-500 text-white font-semibold text-sm shadow-md transition flex items-center gap-2">
+                        <span>Next Question</span>
+                        <i class="fa-solid fa-arrow-right"></i>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- RESULTS SCREEN -->
+        <section id="results-screen" class="hidden max-w-2xl mx-auto w-full space-y-6 animate-fade-in text-center">
+            <div class="glass-panel p-8 sm:p-10 rounded-3xl space-y-6 shadow-2xl relative">
+                <!-- Badge Icon -->
+                <div id="results-icon-container" class="w-24 h-24 mx-auto rounded-full bg-brand-100 dark:bg-brand-900/50 border-4 border-brand-500 flex items-center justify-center text-4xl text-brand-600 dark:text-brand-300 shadow-xl">
+                    <i class="fa-solid fa-trophy"></i>
+                </div>
+
+                <div class="space-y-2">
+                    <h2 class="text-3xl font-black tracking-tight" id="results-title">Quiz Completed!</h2>
+                    <p id="results-subtitle" class="text-gray-500 dark:text-gray-400 text-sm">Great effort! Here is your performance summary.</p>
+                </div>
+
+                <!-- Big Percentage Box -->
+                <div class="bg-gradient-to-r from-brand-600 to-indigo-600 text-white p-6 rounded-2xl shadow-lg space-y-1">
+                    <div class="text-5xl font-black" id="results-percentage">80%</div>
+                    <div class="text-xs font-semibold uppercase tracking-widest text-brand-200">Final Score</div>
+                </div>
+
+                <!-- Score Details Grid -->
+                <div class="grid grid-cols-3 gap-3 text-center">
+                    <div class="p-3 bg-gray-100 dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800">
+                        <p class="text-xs text-gray-500">Correct</p>
+                        <p id="results-correct" class="text-xl font-bold text-emerald-500">0</p>
+                    </div>
+                    <div class="p-3 bg-gray-100 dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800">
+                        <p class="text-xs text-gray-500">Incorrect</p>
+                        <p id="results-incorrect" class="text-xl font-bold text-rose-500">0</p>
+                    </div>
+                    <div class="p-3 bg-gray-100 dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800">
+                        <p class="text-xs text-gray-500">Accuracy</p>
+                        <p id="results-accuracy" class="text-xl font-bold text-brand-500">0%</p>
+                    </div>
+                </div>
+
+                <!-- Buttons -->
+                <div class="flex flex-wrap items-center justify-center gap-4 pt-4">
+                    <button onclick="restartCurrentQuiz()" class="glow-btn px-6 py-3 rounded-xl bg-brand-600 hover:bg-brand-500 text-white font-semibold text-sm shadow-lg shadow-brand-600/30 transition flex items-center gap-2">
+                        <i class="fa-solid fa-rotate-right"></i>
+                        <span>Play Again</span>
+                    </button>
+                    <button onclick="showScreen('home-screen')" class="px-6 py-3 rounded-xl bg-gray-200 dark:bg-gray-800 hover:bg-gray-300 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200 font-semibold text-sm transition flex items-center gap-2">
+                        <i class="fa-solid fa-house"></i>
+                        <span>Back to Home</span>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- CREATE OWN QUIZ MODAL -->
+    <div id="create-modal" class="fixed inset-0 z-50 hidden bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
+        <div class="glass-panel w-full max-w-2xl rounded-3xl p-6 sm:p-8 space-y-6 max-h-[90vh] overflow-y-auto my-auto shadow-2xl border border-brand-500/30">
+            <div class="flex items-center justify-between border-b border-gray-200 dark:border-gray-800 pb-4">
+                <h3 class="text-xl font-bold flex items-center gap-2 text-brand-600 dark:text-brand-400">
+                    <i class="fa-solid fa-pen-to-square"></i>
+                    <span>Create Custom Quiz</span>
+                </h3>
+                <button onclick="closeModal('create-modal')" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+
+            <form id="custom-quiz-form" onsubmit="handleCreateQuiz(event)" class="space-y-4">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold uppercase text-gray-500 mb-1">Category Title</label>
+                        <input type="text" id="custom-cat-title" required placeholder="e.g., Space Exploration" 
+                            class="w-full p-2.5 rounded-xl bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-800 text-sm focus:ring-2 focus:ring-brand-500 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold uppercase text-gray-500 mb-1">Icon Class (FontAwesome)</label>
+                        <input type="text" id="custom-cat-icon" placeholder="fa-rocket" value="fa-brain" 
+                            class="w-full p-2.5 rounded-xl bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-800 text-sm focus:ring-2 focus:ring-brand-500 outline-none">
+                    </div>
+                </div>
+
+                <div class="border-t border-gray-200 dark:border-gray-800 pt-4 space-y-4">
+                    <h4 class="font-bold text-sm text-gray-700 dark:text-gray-300">Add Question</h4>
+                    
+                    <div>
+                        <label class="block text-xs font-semibold uppercase text-gray-500 mb-1">Question Prompt</label>
+                        <input type="text" id="custom-q-title" required placeholder="What is the nearest planet to the Sun?" 
+                            class="w-full p-2.5 rounded-xl bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-800 text-sm focus:ring-2 focus:ring-brand-500 outline-none">
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-xs text-gray-500 mb-1">Option 1</label>
+                            <input type="text" id="opt-0" required placeholder="Mercury" class="w-full p-2 rounded-lg bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-800 text-sm">
+                        </div>
+                        <div>
+                            <label class="block text-xs text-gray-500 mb-1">Option 2</label>
+                            <input type="text" id="opt-1" required placeholder="Venus" class="w-full p-2 rounded-lg bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-800 text-sm">
+                        </div>
+                        <div>
+                            <label class="block text-xs text-gray-500 mb-1">Option 3</label>
+                            <input type="text" id="opt-2" required placeholder="Earth" class="w-full p-2 rounded-lg bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-800 text-sm">
+                        </div>
+                        <div>
+                            <label class="block text-xs text-gray-500 mb-1">Option 4</label>
+                            <input type="text" id="opt-3" required placeholder="Mars" class="w-full p-2 rounded-lg bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-800 text-sm">
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-semibold uppercase text-gray-500 mb-1">Correct Option Index</label>
+                            <select id="custom-q-correct" class="w-full p-2.5 rounded-xl bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-800 text-sm">
+                                <option value="0">Option 1</option>
+                                <option value="1">Option 2</option>
+                                <option value="2">Option 3</option>
+                                <option value="3">Option 4</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold uppercase text-gray-500 mb-1">Difficulty</label>
+                            <select id="custom-q-diff" class="w-full p-2.5 rounded-xl bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-800 text-sm">
+                                <option value="easy">Easy</option>
+                                <option value="medium">Medium</option>
+                                <option value="hard">Hard</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold uppercase text-gray-500 mb-1">Explanation</label>
+                        <input type="text" id="custom-q-exp" placeholder="Mercury is closest to the Sun." 
+                            class="w-full p-2.5 rounded-xl bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-800 text-sm">
+                    </div>
+                </div>
+
+                <div class="flex justify-end gap-3 pt-4 border-t border-gray-200 dark:border-gray-800">
+                    <button type="button" onclick="closeModal('create-modal')" class="px-4 py-2 rounded-xl bg-gray-200 dark:bg-gray-800 text-sm font-semibold">Cancel</button>
+                    <button type="submit" class="px-5 py-2 rounded-xl bg-brand-600 hover:bg-brand-500 text-white text-sm font-semibold shadow-md">Save Quiz</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- IMPORT QUIZ MODAL -->
+    <div id="import-modal" class="fixed inset-0 z-50 hidden bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="glass-panel w-full max-w-lg rounded-3xl p-6 sm:p-8 space-y-6 shadow-2xl">
+            <div class="flex items-center justify-between border-b border-gray-200 dark:border-gray-800 pb-3">
+                <h3 class="text-lg font-bold flex items-center gap-2 text-brand-600 dark:text-brand-400">
+                    <i class="fa-solid fa-file-import"></i>
+                    <span>Import Quiz JSON</span>
+                </h3>
+                <button onclick="closeModal('import-modal')" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <div class="space-y-4">
+                <p class="text-xs text-gray-500 dark:text-gray-400">Paste your quiz JSON format or upload a file containing questions.</p>
+                <textarea id="import-json-input" rows="6" placeholder='{ "title": "My Quiz", "icon": "fa-brain", "questions": [...] }'
+                    class="w-full p-3 rounded-xl bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-800 text-xs font-mono outline-none focus:ring-2 focus:ring-brand-500"></textarea>
+                
+                <div class="flex items-center justify-between">
+                    <input type="file" id="import-file-input" accept=".json" class="hidden" onchange="handleFileUpload(event)">
+                    <button onclick="document.getElementById('import-file-input').click()" class="text-xs text-brand-600 dark:text-brand-400 font-semibold underline">
+                        Upload JSON File
+                    </button>
+                </div>
+            </div>
+
+            <div class="flex justify-end gap-3 pt-3 border-t border-gray-200 dark:border-gray-800">
+                <button onclick="closeModal('import-modal')" class="px-4 py-2 rounded-xl bg-gray-200 dark:bg-gray-800 text-sm font-semibold">Cancel</button>
+                <button onclick="processJsonImport()" class="px-5 py-2 rounded-xl bg-brand-600 hover:bg-brand-500 text-white text-sm font-semibold">Import</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- HIGH SCORES MODAL -->
+    <div id="scores-modal" class="fixed inset-0 z-50 hidden bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="glass-panel w-full max-w-md rounded-3xl p-6 space-y-6 shadow-2xl">
+            <div class="flex items-center justify-between border-b border-gray-200 dark:border-gray-800 pb-3">
+                <h3 class="text-lg font-bold flex items-center gap-2 text-amber-500">
+                    <i class="fa-solid fa-trophy"></i>
+                    <span>High Scores Leaderboard</span>
+                </h3>
+                <button onclick="closeModal('scores-modal')" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <div id="scores-list" class="space-y-2 max-h-60 overflow-y-auto pr-1">
+                <!-- Highscores rendered here -->
+            </div>
+
+            <div class="flex justify-between items-center pt-3 border-t border-gray-200 dark:border-gray-800">
+                <button onclick="clearScores()" class="text-xs text-rose-500 font-semibold hover:underline">Clear Scores</button>
+                <button onclick="closeModal('scores-modal')" class="px-4 py-2 rounded-xl bg-gray-200 dark:bg-gray-800 text-sm font-semibold">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- JAVASCRIPT APPLICATION LOGIC -->
+    <script>
+        /* --- QUESTION BANK DATABASE (10 Questions per Category) --- */
+        const quizDatabase = {
+            science: {
+                title: "Science",
+                icon: "fa-atom",
+                questions: [
+                    { q: "What is the primary chemical element that makes up the Sun?", options: ["Helium", "Hydrogen", "Oxygen", "Carbon"], answer: 1, diff: "easy", exp: "Hydrogen accounts for about 73% of the Sun's mass." },
+                    { q: "Which organ in the human body consumes the most energy?", options: ["Heart", "Liver", "Brain", "Kidney"], answer: 2, diff: "easy", exp: "The brain uses approximately 20% of the body's total energy." },
+                    { q: "What speed does light travel at in a vacuum?", options: ["300,000 km/s", "150,000 km/s", "1,000,000 km/s", "500,000 km/s"], answer: 0, diff: "easy", exp: "Light travels at roughly 299,792 kilometers per second in a vacuum." },
+                    { q: "What is the hardest natural substance on Earth?", options: ["Quartz", "Diamond", "Corundum", "Topaz"], answer: 1, diff: "medium", exp: "Diamond ranks 10 on the Mohs hardness scale." },
+                    { q: "Which gas is most abundant in the Earth's atmosphere?", options: ["Oxygen", "Carbon Dioxide", "Nitrogen", "Argon"], answer: 2, diff: "medium", exp: "Nitrogen makes up about 78% of Earth's atmosphere." },
+                    { q: "What particle has a neutral electric charge?", options: ["Proton", "Electron", "Neutron", "Positron"], answer: 2, diff: "medium", exp: "Neutrons are neutral subatomic particles located in the atomic nucleus." },
+                    { q: "What phenomenon keeps planets in orbit around stars?", options: ["Electromagnetism", "Gravity", "Centrifugal Force", "Nuclear Force"], answer: 1, diff: "easy", exp: "Gravity provides the centripetal force keeping planets in orbit." },
+                    { q: "What is the absolute zero temperature in Celsius?", options: ["-100°C", "-273.15°C", "-459.67°C", "0°C"], answer: 1, diff: "hard", exp: "Absolute zero is 0 Kelvin or -273.15 degrees Celsius." },
+                    { q: "Which blood type is considered the universal donor for red blood cells?", options: ["A Positive", "AB Positive", "O Negative", "O Positive"], answer: 2, diff: "hard", exp: "O Negative blood lacks A, B, and Rh antigens, making it safe for all." },
+                    { q: "What power plant process powers current nuclear reactors?", options: ["Nuclear Fusion", "Nuclear Fission", "Quantum Tunneling", "Geothermal Shift"], answer: 1, diff: "hard", exp: "Current power plants split heavy atoms (fission) to generate power." }
+                ]
+            },
+            geography: {
+                title: "Geography",
+                icon: "fa-earth-americas",
+                questions: [
+                    { q: "What is the capital city of Australia?", options: ["Sydney", "Melbourne", "Canberra", "Brisbane"], answer: 2, diff: "easy", exp: "Canberra was chosen as a compromise capital in 1908." },
+                    { q: "Which river is the longest in the world?", options: ["Amazon", "Nile", "Yangtze", "Mississippi"], answer: 1, diff: "easy", exp: "The Nile River is traditionally regarded as the world's longest." },
+                    { q: "Which country has the highest number of natural lakes?", options: ["Canada", "Russia", "USA", "Finland"], answer: 0, diff: "medium", exp: "Canada contains over 60% of the world's natural lakes." },
+                    { q: "What is the smallest independent nation in the world?", options: ["Monaco", "Nauru", "Vatican City", "San Marino"], answer: 2, diff: "easy", exp: "Vatican City covers an area of just 0.49 square kilometers." },
+                    { q: "Which desert is the largest hot desert in the world?", options: ["Gobi", "Kalahari", "Sahara", "Atacama"], answer: 2, diff: "medium", exp: "The Sahara is the largest hot desert, spanning North Africa." },
+                    { q: "Which mountain range separates Europe from Asia?", options: ["Alps", "Ural Mountains", "Andes", "Himalayas"], answer: 1, diff: "medium", exp: "The Urals form a natural boundary between Europe and Asia." },
+                    { q: "What is the deepest point in the world's oceans?", options: ["Java Trench", "Puerto Rico Trench", "Mariana Trench", "South Sandwich Trench"], answer: 2, diff: "easy", exp: "Challenger Deep in the Mariana Trench reaches nearly 11,000 meters." },
+                    { q: "Which country shares borders with the most other nations?", options: ["China", "Brazil", "Russia", "Both China & Russia"], answer: 3, diff: "hard", exp: "Both China and Russia border 14 neighboring countries." },
+                    { q: "In which ocean is the island country of Seychelles located?", options: ["Atlantic", "Indian", "Pacific", "Arctic"], answer: 1, diff: "hard", exp: "Seychelles is an archipelago in the western Indian Ocean." },
+                    { q: "Which state is the largest by land area in the United States?", options: ["Texas", "California", "Alaska", "Montana"], answer: 2, diff: "easy", exp: "Alaska is larger than Texas, California, and Montana combined." }
+                ]
+            },
+            cars: {
+                title: "Cars & Supercars",
+                icon: "fa-car-side",
+                questions: [
+                    { q: "Which automotive company manufactures the Mustang?", options: ["Chevrolet", "Dodge", "Ford", "Toyota"], answer: 2, diff: "easy", exp: "Ford introduced the iconic Mustang pony car in 1964." },
+                    { q: "What hypercar reached a production top speed over 300 mph first?", options: ["Bugatti Chiron Super Sport 300+", "Koenigsegg Agera RS", "Hennessey Venom GT", "McLaren P1"], answer: 0, diff: "medium", exp: "Bugatti broke 300 mph in 2019 with a modified Chiron." },
+                    { q: "Which brand uses the emblem featuring a 'prancing horse'?", options: ["Lamborghini", "Ferrari", "Porsche", "Maserati"], answer: 1, diff: "easy", exp: "Ferrari's famous Cavallino Rampante symbol was inspired by an Italian WWI pilot hero." },
+                    { q: "Which car company pioneered the 'Quattro' all-wheel-drive system?", options: ["BMW", "Audi", "Mercedes-Benz", "Subaru"], answer: 1, diff: "medium", exp: "Audi revolutionized rallying with its Quattro permanent AWD system." },
+                    { q: "What does the abbreviation 'BMW' stand for?", options: ["British Motor Works", "Bavarian Motor Works", "Berlin Motor Works", "Baltic Motor Works"], answer: 1, diff: "easy", exp: "Bayerische Motoren Werke translates to Bavarian Motor Works." },
+                    { q: "Which supercar introduced dihedral synchro-helix doors?", options: ["Koenigsegg CC8S", "Pagani Zonda", "Ferrari Enzo", "Lexus LFA"], answer: 0, diff: "hard", exp: "Koenigsegg invented and patented this unique vertical door mechanism." },
+                    { q: "What engine layout is famous in the Porsche 911?", options: ["Front-engine V8", "Mid-engine V6", "Rear-engine Flat-6", "Front-engine Inline-4"], answer: 2, diff: "medium", exp: "The Porsche 911 is famous for its rear-mounted boxer flat-six engine." },
+                    { q: "Which Italian luxury manufacturer bears a trident badge?", options: ["Alfa Romeo", "Maserati", "Lancia", "Pagani"], answer: 1, diff: "easy", exp: "Maserati's trident emblem is based on the Fountain of Neptune in Bologna." },
+                    { q: "What model is considered the world's first true supercar?", options: ["Lamborghini Miura", "Ferrari 250 GTO", "Jaguar E-Type", "Mercedes 300SL"], answer: 0, diff: "hard", exp: "The mid-engine 1966 Lamborghini Miura defined the supercar layout." },
+                    { q: "Electric car company Tesla is named after which historic inventor?", options: ["Thomas Edison", "Nikola Tesla", "Michael Faraday", "James Watt"], answer: 1, diff: "easy", exp: "It honors visionary electrical engineer Nikola Tesla." }
+                ]
+            },
+            football: {
+                title: "Football",
+                icon: "fa-futbol",
+                questions: [
+                    { q: "Which country won the FIFA World Cup in 2022?", options: ["France", "Brazil", "Argentina", "Croatia"], answer: 2, diff: "easy", exp: "Argentina defeated France in a thrilling penalty shootout." },
+                    { q: "Who has won the most Ballon d'Or awards in history?", options: ["Cristiano Ronaldo", "Lionel Messi", "Johan Cruyff", "Michel Platini"], answer: 1, diff: "easy", exp: "Lionel Messi has won 8 Ballon d'Or titles." },
+                    { q: "Which club has won the most UEFA Champions League titles?", options: ["AC Milan", "FC Barcelona", "Liverpool", "Real Madrid"], answer: 3, diff: "easy", exp: "Real Madrid holds the record with 15 Champions League titles." },
+                    { q: "In football, how far is the penalty spot from the goal line?", options: ["10 yards", "12 yards", "15 yards", "18 yards"], answer: 1, diff: "medium", exp: "The penalty spot is exactly 12 yards (11 meters) away from goal." },
+                    { q: "Which country hosted the first FIFA World Cup in 1930?", options: ["Uruguay", "Italy", "Brazil", "England"], answer: 0, diff: "medium", exp: "Uruguay hosted and won the inaugural World Cup tournament." },
+                    { q: "Who holds the record for most World Cup goals scored total?", options: ["Pelé", "Ronaldo Nazário", "Miroslav Klose", "Gerd Müller"], answer: 2, diff: "hard", exp: "Miroslav Klose of Germany scored 16 total World Cup goals." },
+                    { q: "Which English team completed the unbeaten 'Invincibles' season in 2003-04?", options: ["Manchester United", "Chelsea", "Arsenal", "Manchester City"], answer: 2, diff: "medium", exp: "Arsenal went 38 games undefeated under Arsène Wenger." },
+                    { q: "How long is a standard professional football match excluding extra time?", options: ["80 minutes", "90 minutes", "100 minutes", "60 minutes"], answer: 1, diff: "easy", exp: "Matches consist of two 45-minute halves totaling 90 minutes." },
+                    { q: "Which player performed the famous 'Hand of God' goal in 1986?", options: ["Diego Maradona", "Pelé", "Zinedine Zidane", "Romário"], answer: 0, diff: "medium", exp: "Diego Maradona scored against England with his hand in the quarter-finals." },
+                    { q: "What is the maximum number of substitutions allowed in official FIFA matches currently?", options: ["3", "4", "5", "6"], answer: 2, diff: "hard", exp: "IFAB permanently adopted 5 substitutions during regular time." }
+                ]
+            },
+            animals: {
+                title: "Animals",
+                icon: "fa-paw",
+                questions: [
+                    { q: "What is the largest living animal on Earth?", options: ["African Elephant", "Blue Whale", "Colossal Squid", "Giraffe"], answer: 1, diff: "easy", exp: "The Blue Whale can reach lengths of 30 meters and weigh up to 200 tons." },
+                    { q: "Which mammal is capable of true sustained flight?", options: ["Flying Squirrel", "Bat", "Sugar Glider", "Flying Lemur"], answer: 1, diff: "easy", exp: "Bats are the only mammals equipped with true wings and sustained flight." },
+                    { q: "What color is a polar bear's skin under its fur?", options: ["Pink", "White", "Black", "Gray"], answer: 2, diff: "medium", exp: "Polar bear skin is black to absorb heat from sunlight." },
+                    { q: "How many hearts does an octopus have?", options: ["1", "2", "3", "4"], answer: 2, diff: "medium", exp: "Octopuses have 3 hearts: two pump blood to gills, one to the body." },
+                    { q: "Which land animal has the strongest bite force?", options: ["Grizzly Bear", "Hippopotamus", "Nile Crocodile", "Lion"], answer: 2, diff: "hard", exp: "Nile Crocodiles exert a bite force up to 5,000 psi." },
+                    { q: "What type of animal is a Komodo Dragon?", options: ["Amphibian", "Lizard", "Snake", "Mammal"], answer: 1, diff: "easy", exp: "The Komodo dragon is the largest living species of lizard." },
+                    { q: "Which bird is known for its ability to fly backwards?", options: ["Hummingbird", "Swift", "Falcon", "Parrot"], answer: 0, diff: "medium", exp: "Hummingbirds have wing joints that rotate to allow backward flight." },
+                    { q: "What is a group of flamingos officially called?", options: ["Flock", "Pride", "Flamboyance", "Swarm"], answer: 2, diff: "hard", exp: "A group of flamingos is famously called a flamboyance." },
+                    { q: "Which animal produces pink milk?", options: ["Pig", "Hippopotamus", "Flamingo", "Walrus"], answer: 1, diff: "medium", exp: "Hippo milk gets a pinkish tint when mixed with secreted skin acids." },
+                    { q: "What is the fastest land animal over short distances?", options: ["Cheetah", "Pronghorn", "Gazelle", "Greyhound"], answer: 0, diff: "easy", exp: "Cheetahs can accelerate from 0 to 60 mph in under 3 seconds." }
+                ]
+            },
+            history: {
+                title: "History",
+                icon: "fa-landmark",
+                questions: [
+                    { q: "In which year did the Titanic sink?", options: ["1905", "1912", "1918", "1923"], answer: 1, diff: "easy", exp: "The Titanic struck an iceberg and sank in April 1912." },
+                    { q: "Who was the first President of the United States?", options: ["Thomas Jefferson", "Abraham Lincoln", "George Washington", "John Adams"], answer: 2, diff: "easy", exp: "George Washington served as president from 1789 to 1797." },
+                    { q: "Which ancient civilization constructed the Pyramids of Giza?", options: ["Greeks", "Romans", "Egyptians", "Persians"], answer: 2, diff: "easy", exp: "Ancient Egyptians built the pyramids as monumental tombs." },
+                    { q: "What historic event triggered the start of World War I?", options: ["Invasion of Poland", "Assassination of Archduke Franz Ferdinand", "Bombing of Pearl Harbor", "Treaty of Versailles"], answer: 1, diff: "medium", exp: "Franz Ferdinand was assassinated in Sarajevo in June 1914." },
+                    { q: "Which empire was ruled by Julius Caesar?", options: ["Ottoman Empire", "Roman Empire", "Byzantine Empire", "British Empire"], answer: 1, diff: "easy", exp: "Julius Caesar was a key general and dictator of the Roman Republic." },
+                    { q: "Who was the female Pharaoh famous for her alliances with Caesar and Mark Antony?", options: ["Nefertiti", "Cleopatra VII", "Hatshepsut", "Sobekneferu"], answer: 1, diff: "medium", exp: "Cleopatra VII was the last active ruler of the Ptolemaic Kingdom of Egypt." },
+                    { q: "In what year did man first step on the Moon?", options: ["1965", "1969", "1972", "1959"], answer: 1, diff: "easy", exp: "Neil Armstrong walked on the Moon during Apollo 11 in July 1969." },
+                    { q: "Which war was fought between the Northern and Southern states in the US?", options: ["Revolutionary War", "American Civil War", "War of 1812", "Mexican-American War"], answer: 1, diff: "easy", exp: "The Civil War took place from 1861 to 1865." },
+                    { q: "What was the name of the ancient trade network connecting East Asia to the Mediterranean?", options: ["Royal Road", "Incense Route", "Silk Road", "Amber Road"], answer: 2, diff: "medium", exp: "The Silk Road facilitated trade and cultural exchange across Eurasia." },
+                    { q: "Who painted the Mona Lisa and designed early flying machines?", options: ["Michelangelo", "Leonardo da Vinci", "Raphael", "Donatello"], answer: 1, diff: "easy", exp: "Leonardo da Vinci was a quintessential Italian Renaissance polymath." }
+                ]
+            },
+            tech: {
+                title: "Technology",
+                icon: "fa-microchip",
+                questions: [
+                    { q: "Who co-founded Microsoft alongside Paul Allen?", options: ["Steve Jobs", "Bill Gates", "Mark Zuckerberg", "Larry Page"], answer: 1, diff: "easy", exp: "Bill Gates and Paul Allen founded Microsoft in 1975." },
+                    { q: "What does 'HTTP' stand for in web addresses?", options: ["HyperText Transfer Protocol", "High Transfer Tech Program", "Hyperlink Text Test Protocol", "Home Tool Protocol"], answer: 0, diff: "easy", exp: "HTTP stands for HyperText Transfer Protocol." },
+                    { q: "Which company developed the Android operating system originally?", options: ["Google", "Android Inc.", "Samsung", "Nokia"], answer: 1, diff: "medium", exp: "Android Inc. was founded in 2003 and acquired by Google in 2005." },
+                    { q: "What was the first computer virus created for MS-DOS called?", options: ["Brain", "ILOVEYOU", "Melissa", "Creeper"], answer: 0, diff: "hard", exp: "Brain was created in 1986 in Pakistan for MS-DOS systems." },
+                    { q: "What is the binary representation of the decimal number 5?", options: ["100", "101", "110", "111"], answer: 1, diff: "medium", exp: "In binary, 4 + 0 + 1 = 101." },
+                    { q: "Which programming language is predominantly used for styling web pages?", options: ["HTML", "JavaScript", "CSS", "Python"], answer: 2, diff: "easy", exp: "CSS (Cascading Style Sheets) provides styling and layout." },
+                    { q: "What does 'RAM' stand for in computer hardware?", options: ["Random Access Memory", "Read Access Media", "Run Automatic Memory", "Rapid Action Module"], answer: 0, diff: "easy", exp: "RAM provides volatile short-term high-speed memory." },
+                    { q: "What tech giant developed the iPhone?", options: ["Microsoft", "IBM", "Apple", "Intel"], answer: 2, diff: "easy", exp: "Apple introduced the first iPhone in 2007 under Steve Jobs." },
+                    { q: "What technology powers cryptocurrencies like Bitcoin?", options: ["Cloud Computing", "Blockchain", "Neural Networks", "Quantum Encryption"], answer: 1, diff: "medium", exp: "Blockchain is a decentralized distributed ledger technology." },
+                    { q: "What company created the ChatGPT AI model?", options: ["Google", "Meta", "OpenAI", "Anthropic"], answer: 2, diff: "easy", exp: "OpenAI launched ChatGPT in late 2022." }
+                ]
+            },
+            general: {
+                title: "General Knowledge",
+                icon: "fa-brain",
+                questions: [
+                    { q: "How many days are in a leap year?", options: ["364", "365", "366", "367"], answer: 2, diff: "easy", exp: "Leap years add an extra day in February, making 366 days." },
+                    { q: "Which instrument measures atmospheric pressure?", options: ["Thermometer", "Barometer", "Anemometer", "Hygrometer"], answer: 1, diff: "medium", exp: "Barometers are used by meteorologists to measure pressure." },
+                    { q: "What primary currency is used across Japan?", options: ["Yuan", "Yen", "Won", "Ringgit"], answer: 1, diff: "easy", exp: "The Japanese Yen is the official national currency." },
+                    { q: "How many total keys are on a standard full-size piano?", options: ["76", "88", "92", "64"], answer: 1, diff: "medium", exp: "A standard piano contains 88 keys (52 white, 36 black)." },
+                    { q: "What is the official national language of Brazil?", options: ["Spanish", "Portuguese", "French", "English"], answer: 1, diff: "easy", exp: "Brazil is the only Portuguese-speaking country in the Americas." },
+                    { q: "Which artist famously painted the Starry Night?", options: ["Pablo Picasso", "Claude Monet", "Vincent van Gogh", "Salvador Dalí"], answer: 2, diff: "easy", exp: "Van Gogh painted Starry Night in 1889 while at an asylum." },
+                    { q: "What is the symbol for gold on the periodic table?", options: ["Go", "Gd", "Au", "Ag"], answer: 2, diff: "medium", exp: "Au is derived from the Latin word for gold, 'Aurum'." },
+                    { q: "Which chess piece can move in an L-shape?", options: ["Bishop", "Knight", "Rook", "Queen"], answer: 1, diff: "easy", exp: "Knights move two squares in one direction and one perpendicular." },
+                    { q: "What is the largest organ in the human body?", options: ["Liver", "Skin", "Lungs", "Small Intestine"], answer: 1, diff: "easy", exp: "Skin is the body's largest organ by weight and surface area." },
+                    { q: "In what year did World War II officially end?", options: ["1943", "1944", "1945", "1950"], answer: 2, diff: "easy", exp: "WWII concluded with allied victories in 1945." }
+                ]
+            }
+        };
+
+        /* --- STATE MANAGEMENT --- */
+        let activeDifficulty = 'easy'; // easy, medium, hard
+        let activeQuizQuestions = [];
+        let currentQuestionIndex = 0;
+        let userScore = 0;
+        let questionTimer = null;
+        let timeLeft = 15;
+        let currentQuizKey = null;
+
+        /* --- DOM LOAD INITIALIZATION --- */
+        window.onload = function() {
+            startClock();
+            initBattery();
+            loadCustomQuizzes();
+            renderCategoryGrid();
+            renderHighScores();
+            
+            // Check system dark mode preference
+            if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                document.documentElement.classList.add('dark');
+            }
+        };
+
+        /* --- REAL TIME CLOCK & BATTERY SUPPORT --- */
+        function startClock() {
+            function updateClock() {
+                const now = new Date();
+                const timeString = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+                document.getElementById('top-time').innerText = timeString;
+            }
+            updateClock();
+            setInterval(updateClock, 1000);
+        }
+
+        function initBattery() {
+            if ('getBattery' in navigator) {
+                navigator.getBattery().then(function(battery) {
+                    function updateBattery() {
+                        const level = Math.round(battery.level * 100);
+                        document.getElementById('top-charge').innerText = level + '%';
+                        const icon = document.getElementById('battery-icon');
+                        if (battery.charging) {
+                            icon.className = 'fa-solid fa-battery-bolt text-xs text-amber-500 animate-pulse';
+                        } else if (level > 70) {
+                            icon.className = 'fa-solid fa-battery-full text-xs';
+                        } else if (level > 30) {
+                            icon.className = 'fa-solid fa-battery-half text-xs';
+                        } else {
+                            icon.className = 'fa-solid fa-battery-quarter text-xs text-rose-500';
+                        }
+                    }
+                    updateBattery();
+                    battery.addEventListener('levelchange', updateBattery);
+                    battery.addEventListener('chargingchange', updateBattery);
+                });
+            } else {
+                document.getElementById('top-charge').innerText = '100%';
+            }
+        }
+
+        /* --- THEME TOGGLE --- */
+        function toggleTheme() {
+            const html = document.documentElement;
+            const icon = document.getElementById('theme-icon');
+            if (html.classList.contains('dark')) {
+                html.classList.remove('dark');
+                icon.className = 'fa-solid fa-sun text-amber-500';
+            } else {
+                html.classList.add('dark');
+                icon.className = 'fa-solid fa-moon';
+            }
+        }
+
+        /* --- SCREEN SWITCHING --- */
+        function showScreen(screenId) {
+            document.getElementById('home-screen').classList.add('hidden');
+            document.getElementById('quiz-screen').classList.add('hidden');
+            document.getElementById('results-screen').classList.add('hidden');
+
+            document.getElementById(screenId).classList.remove('hidden');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        /* --- RENDER CATEGORIES --- */
+        function renderCategoryGrid(filterText = '') {
+            const grid = document.getElementById('category-grid');
+            grid.innerHTML = '';
+
+            Object.keys(quizDatabase).forEach(key => {
+                const cat = quizDatabase[key];
+                if (filterText && !cat.title.toLowerCase().includes(filterText.toLowerCase())) {
+                    return;
+                }
+
+                // Count total questions for category
+                const totalCount = cat.questions.length;
+
+                const card = document.createElement('div');
+                card.className = 'glass-card p-5 rounded-2xl cursor-pointer hover:-translate-y-1 transition duration-300 flex flex-col justify-between space-y-4 group';
+                card.onclick = () => startQuiz(key);
+
+                card.innerHTML = `
+                    <div class="flex items-start justify-between">
+                        <div class="w-12 h-12 rounded-2xl bg-brand-500/10 dark:bg-brand-500/20 text-brand-600 dark:text-brand-400 flex items-center justify-center text-xl group-hover:bg-brand-600 group-hover:text-white transition duration-300">
+                            <i class="fa-solid ${cat.icon}"></i>
+                        </div>
+                        <span class="px-2.5 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400">
+                            ${totalCount} Qs
+                        </span>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-lg text-gray-900 dark:text-gray-100 group-hover:text-brand-500 transition">${cat.title}</h3>
+                        <p class="text-xs text-gray-500 dark:text-gray-400">Test your mastery in ${cat.title}.</p>
+                    </div>
+                    <div class="flex items-center text-xs font-semibold text-brand-600 dark:text-brand-400 gap-1 pt-2">
+                        <span>Start Quiz</span>
+                        <i class="fa-solid fa-arrow-right text-xs group-hover:translate-x-1 transition"></i>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        function filterCategories() {
+            const query = document.getElementById('category-search').value;
+            renderCategoryGrid(query);
+        }
+
+        /* --- DIFFICULTY SELECTION --- */
+        function setDifficulty(diff) {
+            activeDifficulty = diff;
+            document.querySelectorAll('.diff-btn').forEach(btn => {
+                btn.className = 'diff-btn px-3 py-1.5 rounded-lg text-xs font-bold border transition text-gray-500 border-gray-300 dark:border-gray-700';
+            });
+
+            const activeBtn = document.getElementById(`diff-${diff}`);
+            if (diff === 'easy') {
+                activeBtn.className = 'diff-btn px-3 py-1.5 rounded-lg text-xs font-bold border transition bg-emerald-500/10 text-emerald-600 border-emerald-500';
+            } else if (diff === 'medium') {
+                activeBtn.className = 'diff-btn px-3 py-1.5 rounded-lg text-xs font-bold border transition bg-amber-500/10 text-amber-600 border-amber-500';
+            } else if (diff === 'hard') {
+                activeBtn.className = 'diff-btn px-3 py-1.5 rounded-lg text-xs font-bold border transition bg-rose-500/10 text-rose-600 border-rose-500';
+            }
+        }
+
+        /* --- QUIZ ENGINE --- */
+        function startQuiz(categoryKey) {
+            currentQuizKey = categoryKey;
+            const category = quizDatabase[categoryKey];
+            
+            // Filter questions by difficulty if available, fallback to all if insufficient
+            let filtered = category.questions.filter(q => q.diff === activeDifficulty);
+            if (filtered.length < 3) {
+                filtered = category.questions; // Fallback
+            }
+
+            // Shuffle questions
+            activeQuizQuestions = [...filtered].sort(() => Math.random() - 0.5);
+            currentQuestionIndex = 0;
+            userScore = 0;
+
+            document.getElementById('quiz-cat-title').innerText = category.title;
+            document.getElementById('quiz-diff-tag').innerText = activeDifficulty.toUpperCase() + ' LEVEL';
+
+            showScreen('quiz-screen');
+            loadQuestion();
+        }
+
+        function startRandomQuiz() {
+            const keys = Object.keys(quizDatabase);
+            const randomKey = keys[Math.floor(Math.random() * keys.length)];
+            startQuiz(randomKey);
+        }
+
+        function startDailyChallenge() {
+            // Set daily challenge to hard mode & pick first category deterministically by date
+            setDifficulty('hard');
+            const dayOfYear = Math.floor((new Date() - new Date(new Date().getFullYear(), 0, 0)) / (1000 * 60 * 60 * 24));
+            const keys = Object.keys(quizDatabase);
+            const dailyKey = keys[dayOfYear % keys.length];
+            startQuiz(dailyKey);
+        }
+
+        function loadQuestion() {
+            clearInterval(questionTimer);
+            timeLeft = 15;
+            document.getElementById('quiz-timer').innerText = `${timeLeft}s`;
+
+            const currentQ = activeQuizQuestions[currentQuestionIndex];
+            
+            // Progress Bar & Counter
+            const progressPct = ((currentQuestionIndex + 1) / activeQuizQuestions.length) * 100;
+            document.getElementById('quiz-progress-bar').style.width = `${progressPct}%`;
+            document.getElementById('quiz-progress-text').innerText = `Question ${currentQuestionIndex + 1} of ${activeQuizQuestions.length}`;
+            document.getElementById('quiz-score-live').innerText = `Score: ${userScore}`;
+
+            // Hide explanation & disable Next button
+            document.getElementById('quiz-explanation-box').classList.add('hidden');
+            const nextBtn = document.getElementById('next-btn');
+            nextBtn.disabled = true;
+
+            // Render Question Text
+            document.getElementById('quiz-question').innerText = currentQ.q;
+
+            // Render Options
+            const optionsContainer = document.getElementById('quiz-options');
+            optionsContainer.innerHTML = '';
+
+            currentQ.options.forEach((optText, idx) => {
+                const optBtn = document.createElement('button');
+                optBtn.className = 'w-full text-left p-4 rounded-xl glass-card border border-gray-200 dark:border-gray-800 hover:border-brand-500 dark:hover:border-brand-500 font-medium text-sm sm:text-base transition duration-200 flex items-center justify-between group';
+                optBtn.onclick = () => selectOption(idx);
+                
+                optBtn.innerHTML = `
+                    <div class="flex items-center gap-3">
+                        <span class="w-7 h-7 rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 flex items-center justify-center font-bold text-xs group-hover:bg-brand-500 group-hover:text-white transition">
+                            ${String.fromCharCode(65 + idx)}
+                        </span>
+                        <span>${optText}</span>
+                    </div>
+                    <i class="fa-regular fa-circle text-gray-300 dark:text-gray-700 opt-status-icon"></i>
+                `;
+                optionsContainer.appendChild(optBtn);
+            });
+
+            // Start Countdown Timer
+            questionTimer = setInterval(() => {
+                timeLeft--;
+                document.getElementById('quiz-timer').innerText = `${timeLeft}s`;
+                if (timeLeft <= 0) {
+                    clearInterval(questionTimer);
+                    autoTimeOut();
+                }
+            }, 1000);
+        }
+
+        function selectOption(selectedIndex) {
+            clearInterval(questionTimer);
+            const currentQ = activeQuizQuestions[currentQuestionIndex];
+            const optionsContainer = document.getElementById('quiz-options');
+            const optionButtons = optionsContainer.children;
+
+            // Disable all option buttons after selection
+            for (let btn of optionButtons) {
+                btn.onclick = null;
+                btn.classList.add('cursor-default');
+            }
+
+            // Highlight Correct / Incorrect
+            if (selectedIndex === currentQ.answer) {
+                userScore += 10;
+                optionButtons[selectedIndex].classList.remove('glass-card');
+                optionButtons[selectedIndex].classList.add('bg-emerald-500/10', 'border-emerald-500', 'text-emerald-600', 'dark:text-emerald-400');
+                optionButtons[selectedIndex].querySelector('.opt-status-icon').className = 'fa-solid fa-circle-check text-emerald-500 text-lg';
+            } else {
+                if (selectedIndex !== null) {
+                    optionButtons[selectedIndex].classList.remove('glass-card');
+                    optionButtons[selectedIndex].classList.add('bg-rose-500/10', 'border-rose-500', 'text-rose-600', 'dark:text-rose-400');
+                    optionButtons[selectedIndex].querySelector('.opt-status-icon').className = 'fa-solid fa-circle-xmark text-rose-500 text-lg';
+                }
+                // Reveal actual answer
+                optionButtons[currentQ.answer].classList.remove('glass-card');
+                optionButtons[currentQ.answer].classList.add('bg-emerald-500/10', 'border-emerald-500', 'text-emerald-600', 'dark:text-emerald-400');
+                optionButtons[currentQ.answer].querySelector('.opt-status-icon').className = 'fa-solid fa-circle-check text-emerald-500 text-lg';
+            }
+
+            // Reveal explanation
+            document.getElementById('quiz-explanation-text').innerText = currentQ.exp || "No explanation provided.";
+            document.getElementById('quiz-explanation-box').classList.remove('hidden');
+
+            // Enable Next Button
+            document.getElementById('next-btn').disabled = false;
+        }
+
+        function autoTimeOut() {
+            selectOption(null);
+        }
+
+        function nextQuestion() {
+            currentQuestionIndex++;
+            if (currentQuestionIndex < activeQuizQuestions.length) {
+                loadQuestion();
+            } else {
+                finishQuiz();
+            }
+        }
+
+        function quitQuiz() {
+            clearInterval(questionTimer);
+            showScreen('home-screen');
+        }
+
+        function finishQuiz() {
+            clearInterval(questionTimer);
+            const totalQuestions = activeQuizQuestions.length;
+            const correctCount = userScore / 10;
+            const incorrectCount = totalQuestions - correctCount;
+            const percentage = Math.round((correctCount / totalQuestions) * 100);
+
+            document.getElementById('results-percentage').innerText = `${percentage}%`;
+            document.getElementById('results-correct').innerText = correctCount;
+            document.getElementById('results-incorrect').innerText = incorrectCount;
+            document.getElementById('results-accuracy').innerText = `${percentage}%`;
+
+            const iconContainer = document.getElementById('results-icon-container');
+            const titleEl = document.getElementById('results-title');
+
+            if (percentage >= 80) {
+                iconContainer.className = "w-24 h-24 mx-auto rounded-full bg-emerald-500/20 border-4 border-emerald-500 flex items-center justify-center text-4xl text-emerald-500 shadow-xl";
+                iconContainer.innerHTML = `<i class="fa-solid fa-trophy"></i>`;
+                titleEl.innerText = "Mastermind Status!";
+            } else if (percentage >= 50) {
+                iconContainer.className = "w-24 h-24 mx-auto rounded-full bg-amber-500/20 border-4 border-amber-500 flex items-center justify-center text-4xl text-amber-500 shadow-xl";
+                iconContainer.innerHTML = `<i class="fa-solid fa-medal"></i>`;
+                titleEl.innerText = "Good Job!";
+            } else {
+                iconContainer.className = "w-24 h-24 mx-auto rounded-full bg-rose-500/20 border-4 border-rose-500 flex items-center justify-center text-4xl text-rose-500 shadow-xl";
+                iconContainer.innerHTML = `<i class="fa-solid fa-brain"></i>`;
+                titleEl.innerText = "Keep Practicing!";
+            }
+
+            // Save High Score
+            saveScore(quizDatabase[currentQuizKey]?.title || "Custom Quiz", userScore, percentage);
+
+            showScreen('results-screen');
+        }
+
+        function restartCurrentQuiz() {
+            if (currentQuizKey) {
+                startQuiz(currentQuizKey);
+            } else {
+                showScreen('home-screen');
+            }
+        }
+
+        /* --- HIGH SCORES & LOCALSTORAGE --- */
+        function saveScore(categoryTitle, score, pct) {
+            const scores = JSON.parse(localStorage.getItem('brinzo_scores') || '[]');
+            const newEntry = {
+                category: categoryTitle,
+                score: score,
+                percentage: pct,
+                date: new Date().toLocaleDateString()
+            };
+            scores.unshift(newEntry);
+            localStorage.setItem('brinzo_scores', JSON.stringify(scores.slice(0, 10)));
+            renderHighScores();
+        }
+
+        function renderHighScores() {
+            const scoresList = document.getElementById('scores-list');
+            const scores = JSON.parse(localStorage.getItem('brinzo_scores') || '[]');
+
+            if (scores.length === 0) {
+                scoresList.innerHTML = `<p class="text-xs text-gray-400 text-center py-4">No high scores recorded yet!</p>`;
+                return;
+            }
+
+            scoresList.innerHTML = scores.map((s, i) => `
+                <div class="flex items-center justify-between p-3 rounded-xl bg-gray-100 dark:bg-gray-900 text-xs">
+                    <div class="flex items-center gap-2">
+                        <span class="font-black text-brand-500 w-4">#${i+1}</span>
+                        <div>
+                            <p class="font-bold text-gray-800 dark:text-gray-200">${s.category}</p>
+                            <p class="text-[10px] text-gray-400">${s.date}</p>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <span class="font-bold text-emerald-500 text-sm">${s.percentage}%</span>
+                        <p class="text-[10px] text-gray-400">${s.score} pts</p>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function clearScores() {
+            localStorage.removeItem('brinzo_scores');
+            renderHighScores();
+        }
+
+        /* --- MODAL CONTROLS --- */
+        function openModal(modalId) {
+            document.getElementById(modalId).classList.remove('hidden');
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.add('hidden');
+        }
+
+        /* --- CUSTOM QUIZ CREATION --- */
+        function handleCreateQuiz(e) {
+            e.preventDefault();
+            const catTitle = document.getElementById('custom-cat-title').value.trim();
+            const iconClass = document.getElementById('custom-cat-icon').value.trim() || 'fa-brain';
+            const qTitle = document.getElementById('custom-q-title').value.trim();
+            const options = [
+                document.getElementById('opt-0').value.trim(),
+                document.getElementById('opt-1').value.trim(),
+                document.getElementById('opt-2').value.trim(),
+                document.getElementById('opt-3').value.trim()
+            ];
+            const correctIdx = parseInt(document.getElementById('custom-q-correct').value);
+            const difficulty = document.getElementById('custom-q-diff').value;
+            const exp = document.getElementById('custom-q-exp').value.trim();
+
+            const key = 'custom_' + Date.now();
+            const newQuiz = {
+                title: catTitle,
+                icon: iconClass,
+                questions: [{
+                    q: qTitle,
+                    options: options,
+                    answer: correctIdx,
+                    diff: difficulty,
+                    exp: exp
+                }]
+            };
+
+            // Save custom quiz to database and localStorage
+            quizDatabase[key] = newQuiz;
+            const savedCustoms = JSON.parse(localStorage.getItem('brinzo_custom_quizzes') || '{}');
+            savedCustoms[key] = newQuiz;
+            localStorage.setItem('brinzo_custom_quizzes', JSON.stringify(savedCustoms));
+
+            renderCategoryGrid();
+            closeModal('create-modal');
+            document.getElementById('custom-quiz-form').reset();
+        }
+
+        function loadCustomQuizzes() {
+            const savedCustoms = JSON.parse(localStorage.getItem('brinzo_custom_quizzes') || '{}');
+            Object.keys(savedCustoms).forEach(key => {
+                quizDatabase[key] = savedCustoms[key];
+            });
+        }
+
+        /* --- JSON IMPORT ENGINE --- */
+        function processJsonImport() {
+            const raw = document.getElementById('import-json-input').value;
+            try {
+                const parsed = JSON.parse(raw);
+                if (!parsed.title || !Array.isArray(parsed.questions)) {
+                    throw new Error("Invalid format. Missing 'title' or 'questions' array.");
+                }
+
+                const key = 'imported_' + Date.now();
+                quizDatabase[key] = {
+                    title: parsed.title,
+                    icon: parsed.icon || 'fa-file-code',
+                    questions: parsed.questions
+                };
+
+                const savedCustoms = JSON.parse(localStorage.getItem('brinzo_custom_quizzes') || '{}');
+                savedCustoms[key] = quizDatabase[key];
+                localStorage.setItem('brinzo_custom_quizzes', JSON.stringify(savedCustoms));
+
+                renderCategoryGrid();
+                closeModal('import-modal');
+                document.getElementById('import-json-input').value = '';
+            } catch (err) {
+                alert("Error importing JSON: " + err.message);
+            }
+        }
+
+        function handleFileUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                document.getElementById('import-json-input').value = e.target.result;
+            };
+            reader.readAsText(file);
+        }
+    </script>
+</body>
+</html>
